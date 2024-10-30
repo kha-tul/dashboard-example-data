@@ -1,9 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -32,14 +29,23 @@ monthly_metrics = gsc_df.groupby(gsc_df['date'].dt.to_period('M')).agg({
 }).reset_index()
 monthly_metrics['date'] = monthly_metrics['date'].astype(str)
 
-fig1 = make_subplots(rows=2, cols=1, subplot_titles=('Traffic Metrics', 'Average Position'))
+fig1 = make_subplots(rows=2, cols=1, subplot_titles=('Traffic Metrics', 'Average Position'), vertical_spacing=0.2)
+
 fig1.add_trace(go.Scatter(x=monthly_metrics['date'], y=monthly_metrics['clicks'],
                          name='Clicks', mode='lines+markers'), row=1, col=1)
 fig1.add_trace(go.Scatter(x=monthly_metrics['date'], y=monthly_metrics['impressions'],
                          name='Impressions', mode='lines+markers'), row=1, col=1)
 fig1.add_trace(go.Scatter(x=monthly_metrics['date'], y=monthly_metrics['position'],
                          name='Position', mode='lines+markers'), row=2, col=1)
+
+# Atualizando os eixos e aumentando o tamanho da fonte
 fig1.update_yaxes(autorange="reversed", row=2, col=1)
+fig1.update_layout(
+    height=700,
+    title_font_size=24,
+    font=dict(size=16),
+    margin=dict(l=40, r=40, t=40, b=40)
+)
 st.plotly_chart(fig1, use_container_width=True)
 
 # 2. Análise por Categoria
@@ -53,15 +59,21 @@ cluster_metrics = content_performance.groupby('Cluster').agg({
 }).reset_index()
 cluster_metrics['CTR'] = (cluster_metrics['clicks'] / cluster_metrics['impressions']) * 100
 
-fig2 = make_subplots(rows=2, cols=1, subplot_titles=('Traffic by Category', 'CTR and Position'))
-fig2.add_trace(go.Bar(x=cluster_metrics['Cluster'], y=cluster_metrics['clicks'],
-                      name='Clicks'), row=1, col=1)
-fig2.add_trace(go.Bar(x=cluster_metrics['Cluster'], y=cluster_metrics['impressions'],
-                      name='Impressions'), row=1, col=1)
-fig2.add_trace(go.Scatter(x=cluster_metrics['Cluster'], y=cluster_metrics['CTR'],
-                         name='CTR (%)', mode='lines+markers'), row=2, col=1)
-fig2.add_trace(go.Scatter(x=cluster_metrics['Cluster'], y=cluster_metrics['position'],
-                         name='Position', mode='lines+markers'), row=2, col=1)
+# Aumentando a distância entre os gráficos
+fig2 = make_subplots(rows=2, cols=1, subplot_titles=('Traffic by Category', 'CTR and Position'), vertical_spacing=0.3)
+
+fig2.add_trace(go.Bar(x=cluster_metrics['Cluster'], y=cluster_metrics['clicks'], name='Clicks'), row=1, col=1)
+fig2.add_trace(go.Bar(x=cluster_metrics['Cluster'], y=cluster_metrics['impressions'], name='Impressions'), row=1, col=1)
+fig2.add_trace(go.Scatter(x=cluster_metrics['Cluster'], y=cluster_metrics['CTR'], name='CTR (%)', mode='lines+markers'), row=2, col=1)
+fig2.add_trace(go.Scatter(x=cluster_metrics['Cluster'], y=cluster_metrics['position'], name='Position', mode='lines+markers'), row=2, col=1)
+
+# Atualizando o layout e aumentando o tamanho da fonte
+fig2.update_layout(
+    height=700,
+    title_font_size=24,
+    font=dict(size=16),
+    margin=dict(l=40, r=40, t=40, b=40)
+)
 st.plotly_chart(fig2, use_container_width=True)
 
 # 3. Matriz de Correlação
@@ -72,6 +84,13 @@ fig3 = px.imshow(correlation_matrix,
                  x=correlation_matrix.columns,
                  y=correlation_matrix.columns,
                  color_continuous_scale='RdBu_r')
+
+# Atualizando o layout e aumentando o tamanho da fonte
+fig3.update_layout(
+    title_font_size=24,
+    font=dict(size=16),
+    margin=dict(l=40, r=40, t=40, b=40)
+)
 st.plotly_chart(fig3, use_container_width=True)
 
 # 4. Análise de Sazonalidade
@@ -89,12 +108,22 @@ weekday_performance['weekday'] = pd.Categorical(weekday_performance['weekday'],
                                               ordered=True)
 weekday_performance = weekday_performance.sort_values('weekday')
 
-fig4 = make_subplots(rows=1, cols=2, subplot_titles=('Average Daily Clicks', 'Average Position'))
-fig4.add_trace(go.Bar(x=weekday_performance['weekday'], y=weekday_performance['clicks'],
-                      name='Clicks'), row=1, col=1)
-fig4.add_trace(go.Bar(x=weekday_performance['weekday'], y=weekday_performance['position'],
-                      name='Position'), row=1, col=2)
-fig4.update_yaxes(autorange="reversed", row=1, col=2)
+fig4 = make_subplots(rows=1, cols=2, subplot_titles=('Average Daily Clicks', 'Average Position'), vertical_spacing=0.3)
+
+fig4.add_trace(go.Bar(x=weekday_performance['weekday'], y=weekday_performance['clicks'], name='Clicks'), row=1, col=1)
+fig4.add_trace(go.Bar(x=weekday_performance['weekday'], y=weekday_performance['position'], name='Position'), row=1, col=2)
+
+# Ajuste para evitar que as barras ultrapassem o limite
+fig4.update_yaxes(range=[0, weekday_performance['clicks'].max() * 1.1], row=1, col=1)
+fig4.update_yaxes(range=[0, weekday_performance['position'].max() * 1.1], row=1, col=2)
+
+# Atualizando o layout e aumentando o tamanho da fonte
+fig4.update_layout(
+    height=400,
+    title_font_size=24,
+    font=dict(size=16),
+    margin=dict(l=40, r=40, t=40, b=40)
+)
 st.plotly_chart(fig4, use_container_width=True)
 
 # Métricas principais
