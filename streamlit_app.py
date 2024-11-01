@@ -6,8 +6,8 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 # Configuração da página
-st.set_page_config(page_title="SEO Analysis Dashboard", layout="wide")
-st.title("SEO Performance Analysis Dashboard")
+st.set_page_config(page_title="📊 SEO Analysis Dashboard", layout="wide")
+st.title("📊 SEO Performance Analysis Dashboard")
 
 # Carregar dados
 @st.cache_data
@@ -56,8 +56,7 @@ fig1.add_trace(go.Bar(
     y=monthly_metrics['impressions'],
     name='Impressions',
     text=[f"{x/1e6:.1f}M" if x >= 1e6 else f"{x:,.0f}" for x in monthly_metrics['impressions']],
-    textposition='outside',
-    hovertemplate='Impressions: %{y:.2f}<extra></extra>'  # Aqui está a modificação
+    textposition='outside'
 ), row=2, col=1)
 
 # Position
@@ -71,7 +70,7 @@ fig1.add_trace(go.Scatter(
 ), row=3, col=1)
 
 fig1.update_layout(
-    height=1300,
+    height=1200,
     showlegend=True,
     title_text="Monthly Traffic Trends",
     title_x=0.5
@@ -84,27 +83,61 @@ fig1.update_yaxes(title_text="Position", row=3, col=1)
 
 st.plotly_chart(fig1, use_container_width=True)
 
-# Content Category Analysis
-st.header("Content Category Analysis")
-category_performance = gsc_df.groupby('Cluster').agg({
+# 2. Content Category Analysis
+st.header("2. Content Category Analysis")
+
+# Prepare data for both metrics
+content_metrics = gsc_df.groupby('Cluster').agg({
     'clicks': 'sum',
     'impressions': 'sum'
 }).reset_index()
 
-category_performance = category_performance.sort_values('clicks', ascending=False)
+# Sort by impressions (you can change this to sort by clicks if preferred)
+content_metrics = content_metrics.sort_values('impressions', ascending=True)
 
-fig2 = px.bar(category_performance, 
-              x='Cluster', 
-              y='clicks',
-              text=[f"{x/1e6:.1f}M" if x >= 1e6 else f"{x:,.0f}" for x in category_performance['clicks']])
+# Create subplots for Clicks and Impressions
+fig2 = make_subplots(rows=2, cols=1, 
+                     subplot_titles=('Content Category: Clicks', 'Content Category: Impressions'),
+                     vertical_spacing=0.1)
 
-fig2.update_traces(textposition='outside')
-fig2.update_layout(
-    title_text="Content Category Performance",
-    xaxis_title="Category",
-    yaxis_title="Clicks",
-    height=500
+# Clicks subplot
+fig2.add_trace(
+    go.Bar(
+        x=content_metrics['clicks'],
+        y=content_metrics['Cluster'],
+        orientation='h',
+        name='Clicks',
+        text=[f"{x/1e6:.1f}M" if x >= 1e6 else f"{x:,.0f}" for x in content_metrics['clicks']],
+        textposition='auto',
+        hovertemplate='Clicks: %{x:.2f}<extra></extra>'
+    ),
+    row=1, col=1
 )
+
+# Impressions subplot
+fig2.add_trace(
+    go.Bar(
+        x=content_metrics['impressions'],
+        y=content_metrics['Cluster'],
+        orientation='h',
+        name='Impressions',
+        text=[f"{x/1e6:.1f}M" if x >= 1e6 else f"{x:,.0f}" for x in content_metrics['impressions']],
+        textposition='auto',
+        hovertemplate='Impressions: %{x:.2f}<extra></extra>'
+    ),
+    row=2, col=1
+)
+
+fig2.update_layout(
+    height=1000,
+    showlegend=True,
+    title_text="Content Category Analysis",
+    title_x=0.5
+)
+
+# Update x-axis titles
+fig2.update_xaxes(title_text="Clicks", row=1, col=1)
+fig2.update_xaxes(title_text="Impressions", row=2, col=1)
 
 st.plotly_chart(fig2, use_container_width=True)
 
