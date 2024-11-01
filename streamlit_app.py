@@ -86,16 +86,13 @@ st.plotly_chart(fig1, use_container_width=True)
 # 2. Content Category Analysis
 st.header("2. Content Category Analysis")
 
-# Prepare data for both metrics
 content_metrics = gsc_df.groupby('Cluster').agg({
     'clicks': 'sum',
     'impressions': 'sum'
 }).reset_index()
 
-# Sort by impressions (you can change this to sort by clicks if preferred)
 content_metrics = content_metrics.sort_values('impressions', ascending=True)
 
-# Create subplots for Clicks and Impressions
 fig2 = make_subplots(rows=2, cols=1, 
                      subplot_titles=('Content Category: Clicks', 'Content Category: Impressions'),
                      vertical_spacing=0.1)
@@ -135,7 +132,6 @@ fig2.update_layout(
     title_x=0.5
 )
 
-# Update x-axis titles
 fig2.update_xaxes(title_text="Clicks", row=1, col=1)
 fig2.update_xaxes(title_text="Impressions", row=2, col=1)
 
